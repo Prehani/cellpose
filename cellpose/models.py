@@ -66,12 +66,12 @@ class Cellpose():
         run model using torch if available
 
     """
-    def __init__(self, gpu=False, model_type='cyto', net_avg=True, device=None, ptorch=True, model_dir=None, omni=False):
+    def __init__(self, gpu=False, model_type='cyto', net_avg=True, device=None, use_torch=True, model_dir=None, omni=False):
         super(Cellpose, self).__init__()
-        if not ptorch:
+        if not use_torch:
             if not MXNET_ENABLED:
-                ptorch = True
-        self.torch = ptorch
+                use_torch = True
+        self.torch = use_torch
         
         # assign device (GPU or CPU)
         sdevice, gpu = assign_device(self.torch, gpu)
@@ -404,7 +404,7 @@ class CellposeModel(UnetModel):
         super().__init__(gpu=gpu, pretrained_model=False,
                          diam_mean=self.diam_mean, net_avg=net_avg, device=device,
                          residual_on=residual_on, style_on=style_on, concatenation=concatenation,
-                         nclasses=self.nclasses, ptorch=self.torch, nchan=nchan, gpu_number=device)
+                         nclasses=self.nclasses, use_torch=self.torch, nchan=nchan, gpu_number=device)
 
         self.unet = False
         self.pretrained_model = pretrained_model
