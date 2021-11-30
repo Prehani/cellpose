@@ -79,8 +79,12 @@ def _use_gpu_torch(gpu_number=0):
         core_logger.info('TORCH CUDA version not installed/working.')
         return False
 
-def assign_device(istorch, gpu):
+def assign_device(istorch, gpu, gpu_number=None):
     if gpu and use_gpu(istorch=istorch):
+        try:
+            torch_GPU = torch.device(f'cuda:{gpu_number}')
+        except: 
+            torch_GPU = torch.device(f'cuda')
         device = torch_GPU if istorch else mx_GPU
         gpu=True
         core_logger.info('>>>> using GPU')
@@ -118,23 +122,24 @@ class UnetModel():
     def __init__(self, gpu=False, pretrained_model=False,
                     diam_mean=30., net_avg=True, device=None,
                     residual_on=False, style_on=False, concatenation=True,
-                    nclasses=4, torch=True, nchan=2):
+                    nclasses=4, use_torch=True, nchan=2, gpu_number=None):
         self.unet = True
-        if torch:
+        if use_torch:
             if not TORCH_ENABLED:
-                torch = False
-        self.torch = torch
+                use_torch = False
+        self.torch = use_torch
         self.mkldnn = None
         if device is None:
-            sdevice, gpu = assign_device(torch, gpu)
+            sdevice, gpu = assign_device(torch, gpu, gpu_number=gpu_number)
         self.device = device if device is not None else sdevice
-        if device is not None:
-            if torch:
+        if device:
+            if self.torch:
                 device_gpu = self.device.type=='cuda'
             else:
                 device_gpu = self.device.device_type=='gpu'
         self.gpu = gpu if device is None else device_gpu
-        if torch and not self.gpu:
+        torch.cuda.set_device(gpu_number)
+        if self.torch and not self.gpu:
             self.mkldnn = check_mkl(self.torch)
         self.pretrained_model = pretrained_model
         self.diam_mean = diam_mean
@@ -850,7 +855,7 @@ class UnetModel():
               test_data=None, test_labels=None,
               pretrained_model=None, save_path=None, save_every=100, save_each=False,
               learning_rate=0.2, n_epochs=500, momentum=0.9, weight_decay=0.00001, 
-              SGD=False, batch_size=8, rescale=True, netstr='cellpose'): 
+              SGD=False, batch_size=8, rescale=True, netstr='cellpose', device=None): 
         """ train function uses loss function self.loss_fn in models.py"""
         
         d = datetime.datetime.now()

@@ -65,6 +65,7 @@ def main():
     model_args = parser.add_argument_group("model arguments")
     parser.add_argument('--pretrained_model', required=False, default='cyto', type=str, help='model to use')
     parser.add_argument('--unet', required=False, default=0, type=int, help='run standard unet instead of cellpose flow output')
+    parser.add_argument('--device', required=False, default=None, type=int, help='CUDA Device to use')
     model_args.add_argument('--nclasses',default=3, type=int, help='if running unet, choose 2 or 3; if training omni, choose 4; standard Cellpose uses 3')
 
 
@@ -176,7 +177,7 @@ def main():
                     exit()
                     
                     
-        device, gpu = models.assign_device((not args.mxnet), args.use_gpu)
+        device, gpu = models.assign_device((not args.mxnet), args.use_gpu, gpu_number=args.device)
 
         #define available model names, right now we have three broad categories 
         model_names = ['cyto','nuclei','bact','cyto2','bact_omni','cyto2_omni']
@@ -391,7 +392,8 @@ def main():
                                         style_on=args.style_on,
                                         concatenation=args.concatenation,
                                         nclasses=args.nclasses,
-                                        nchan=nchan)
+                                        nchan=nchan,
+                                        gpu_number=args.device)
             else:
                 model = models.CellposeModel(device=device,
                                             torch=(not args.mxnet),
