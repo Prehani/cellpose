@@ -81,10 +81,11 @@ def _use_gpu_torch(gpu_number=0):
 
 def assign_device(istorch, gpu, gpu_number=None):
     if gpu and use_gpu(istorch=istorch):
-        try:
-            torch_GPU = torch.device(f'cuda:{gpu_number}')
-        except: 
-            torch_GPU = torch.device(f'cuda')
+        if istorch:
+            try:
+                torch_GPU = torch.device(f'cuda:{gpu_number}')
+            except: 
+                torch_GPU = torch.device(f'cuda')
         device = torch_GPU if istorch else mx_GPU
         gpu=True
         core_logger.info('>>>> using GPU')
